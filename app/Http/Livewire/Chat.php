@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use App\Models\Message;
+use App\Models\Typing;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -25,6 +26,32 @@ class Chat extends Component
         //show chat for the given $id
         $this->userID = $id;
     }
+
+
+    public function updatingBody()
+    {
+        //check if there's already is typing object made by the logged-in user
+        //to the other one in the opened window
+        $bool = sizeof(Typing::where('sender', auth()->id())
+                ->where('receiver', $this->userID)->get()) > 0;
+        if (!$bool) {
+            Typing::create([
+                'sender' => auth()->id(),
+                'receiver' => $this->userID,
+            ]);
+        }
+    }
+
+    public function updatedBody()
+    {
+        if ($this->body == "") {
+
+            //delete the is typing object
+            $type = Typing::where('sender', auth()->id())->where('receiver', $this->userID)
+                ->get()->first->delete();
+        }
+    }
+
 
     public function sendMessage()
     {
@@ -50,6 +77,9 @@ class Chat extends Component
 
     public function resetForm()
     {
+        //delete the is typing object
+        $type = Typing::where('sender', auth()->id())->where('receiver', $this->userID)
+            ->get()->first->delete();
         //set the $body variable to empty string
         $this->body = "";
     }

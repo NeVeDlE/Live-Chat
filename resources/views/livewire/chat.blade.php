@@ -19,7 +19,6 @@
             @if($users->count())
                 <h2 class="my-2 mb-2 ml-2 text-lg text-gray-600">Chats</h2>
                 <li>
-
                     @foreach($users as $user)
                         <a wire:click="showChat({{$user->id}})"
                            @if(isset($chat)&& $user->id==$chat->id)
@@ -27,16 +26,15 @@
                            @else
                            class="flex items-center px-3 py-2 text-sm transition duration-150 ease-in-out bg-white-100 border-b border-gray-300 cursor-pointer focus:outline-none"
                             @endif>
-                            {{--<img class="object-cover w-10 h-10 rounded-full"
-                                 src="https://cdn.pixabay.com/photo/2016/06/15/15/25/loudspeaker-1459128__340.png"
-                                 alt="username"/>--}}
                             <div class="w-full pb-2">
                                 <div class="flex justify-between">
                                     <span class="block ml-2 font-semibold text-gray-600">{{$user->name}}</span>
-
+                                    @if(sizeof(\App\Models\Typing::where('sender',$user->id)->where('receiver',Auth::id())->get())>0)
+                                        <span class="block ml-2 text-sm text-green-600">User is Typing...</span>
+                                    @endif
                                 </div>
-
                             </div>
+
                         </a>
                     @endforeach
                 </li>
@@ -49,21 +47,16 @@
     <div class="hidden lg:col-span-2 lg:block">
         <div class="w-full">
             @if(!empty($chat))
-
                 <div class="relative flex items-center p-3 border-b border-gray-300">
-                    {{--<img class="object-cover w-10 h-10 rounded-full"
-                         src="https://cdn.pixabay.com/photo/2018/01/15/07/51/woman-3083383__340.jpg"
-                         alt="username"/>--}}
                     <span class="block ml-2 font-bold text-gray-600">{{$chat->name}}</span>
-
+                    @if(sizeof(\App\Models\Typing::where('sender',$chat->id)->where('receiver',Auth::id())->get())>0)
+                        <span class="block ml-2 text-sm text-green-600">User is Typing...</span>
+                    @endif
                 </div>
-
                 <div class="relative w-full p-6 overflow-y-auto h-[40rem]">
                     <ul class="space-y-2">
                         @if($messages->count())
                             @foreach($messages->reverse() as $message)
-
-
                                 @if($message->sender!=Auth::id())
                                     <li class="flex justify-start">
                                         <div class="relative max-w-xl px-4 py-2 text-gray-700 rounded shadow">
@@ -85,12 +78,11 @@
                     </ul>
                 </div>
                 {{$messages->links()}}
-
-
                 <form wire:submit.prevent="sendMessage" method="POST"
                       class="flex items-center justify-between w-full p-3 border-t border-gray-300">
                     @csrf
-                    <input wire:model="body" type="text" placeholder="Message"
+                    <input wire:model.debounce.500="body" wire:key="isTyping({{Auth::id()}})" type="text"
+                           placeholder="Message"
                            class="block w-full py-2 pl-4 mx-3 bg-gray-100 rounded-full outline-none focus:text-gray-700"
                            name="body" required autocomplete="off"/>
 
@@ -103,7 +95,6 @@
                         </svg>
                     </button>
                 </form>
-
         </div>
         @else
             <p class="text-center mt-8">Please Select a Chat..</p>
