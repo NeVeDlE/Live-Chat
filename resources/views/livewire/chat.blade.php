@@ -11,7 +11,7 @@
                 <input wire:model.debounce.400="search" type="search"
                        class="block w-full py-2 pl-10 bg-gray-100 rounded outline-none"
                        name="search"
-                       placeholder="Search For Chats" required/>
+                       placeholder="Search For Chats" autocomplete="off" required/>
             </div>
         </div>
 
@@ -29,8 +29,16 @@
                             <div class="w-full pb-2">
                                 <div class="flex justify-between">
                                     <span class="block ml-2 font-semibold text-gray-600">{{$user->name}}</span>
+
                                     @if(sizeof(\App\Models\Typing::where('sender',$user->id)->where('receiver',Auth::id())->get())>0)
                                         <span class="block ml-2 text-sm text-green-600">User is Typing...</span>
+                                    @endif
+                                    @php
+                                        $counter=\App\Models\Message::where('sender',$user->id)
+                                            ->where('receiver',Auth::id())->where('viewed',0)->count();
+                                    @endphp
+                                    @if($counter)
+                                        <span class="block ml-2 text-xs font-bold uppercase">{{$counter}}</span>
                                     @endif
                                 </div>
                             </div>
